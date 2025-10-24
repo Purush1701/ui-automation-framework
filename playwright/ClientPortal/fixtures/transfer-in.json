@@ -1,0 +1,20 @@
+{
+  "createTransferInFiat": {
+    "fromBankAccount": "{BANK_ACCOUNT_NUMBER}",
+    "fromBankAccount_Id": "{BANK_ACCOUNT_ID}",
+    "toAccount": "{ACCOUNT_NUMBER}",
+    "toAccount_Id": "{ACCOUNT_ID}",
+    "amount": "1000",
+    "sourceOfFunds": [
+      "salary",
+      "savings",
+      "gift",
+      "investment-proceeds",
+      "insurance-proceeds",
+      "trust",
+      "inheritance",
+      "real-estate",
+      "legal-settlement"
+    ]
+  }
+}

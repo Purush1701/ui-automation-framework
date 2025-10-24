@@ -1,0 +1,79 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+.env.uat
+.env.common
+
+# Test results and reports
+cypress/results/
+cypress/reports/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+cypress/traces/
+playwright/reports/
+playwright/artifacts/
+playwright/test-results/
+playwright/downloads/
+playwright/traces/
+
+# Large media files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+*.mp4
+*.mov
+*.avi
+
+# Session and authentication files
+playwright/ClientPortal/fixtures/session/
+playwright/BackOffice/fixtures/session/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Temporary folders
+tmp/
+temp/
+
+# Build outputs
+dist/
+build/

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "dom"],
+    "types": ["cypress", "@playwright/test", "node"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "playwright/**/*.ts",
+    "**/*.ts",
+    "cypress.common.ts",
+    "cypress.config.staging.ts",
+    "cypress.config.uat.ts",
+    "cypress/**/*.ts",
+    "cypress-mochawesome-reporter.d.ts"
+  ],
+  "exclude": ["cypress/**", "playwright/ClientPortal/**", "playwright/BackOffice/**", "playwright/scripts/**"]
+}

@@ -1,0 +1,22 @@
+{
+  "createTransferOutFiat": {
+    "fromAccount": "{ACCOUNT_NUMBER}",
+    "fromAccount_Id": "{ACCOUNT_ID}",
+    "toAccount": "{BANK_ACCOUNT_NUMBER}",
+    "toAccount_Id": "{BANK_ACCOUNT_ID}",
+    "amount": "100",
+    "purposeOfTransferOptions": [
+      "gift",
+      "travel",
+      "maintenance-or-family-support",
+      "property-or-real-estate",
+      "donation",
+      "savings",
+      "investment",
+      "pay-or-salary",
+      "goods-or-services-purchase",
+      "loan",
+      "personal-expense"
+    ]
+  }
+}

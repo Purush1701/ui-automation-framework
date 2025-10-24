@@ -1,0 +1,51 @@
+# Node modules and dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test results and artifacts
+playwright/reports/
+playwright/test-results/
+playwright/screenshots/
+playwright/videos/
+playwright/artifacts/
+playwright-report/
+cypress/reports/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+test-results/
+
+# Session files (should be generated in container)
+playwright/ClientPortal/fixtures/session/
+playwright/BackOffice/fixtures/session/
+
+# Development files
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.idea/
+
+# Environment files (use build args instead)
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Build artifacts
+dist/
+build/
+out/
