@@ -1,0 +1,10 @@
+{
+  "sampleAccount": {
+    "accountNumber": "{ACCOUNT_NUMBER}",
+    "accountId": "{ACCOUNT_ID}",
+    "accountType": "bank",
+    "bankName": "{BANK_NAME}",
+    "routingNumber": "{ROUTING_NUMBER}",
+    "isWhitelisted": false
+  }
+}

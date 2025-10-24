@@ -1,0 +1,42 @@
+{
+  "name": "ui-automation-framework",
+  "version": "2.0.0",
+  "description": "End-to-end test automation framework for web applications using Microsoft Playwright",
+  "type": "module",
+  "scripts": {
+    "test": "npx playwright test --config=playwright/playwright.config.ts",
+    "test:playwright": "npx playwright test --config=playwright/playwright.config.ts",
+    "test:cypress": "npx cypress run --config-file cypress.config.staging.ts",
+    "test:all": "npm run test:playwright && npm run test:cypress",
+    "test:headed": "npx playwright test --config=playwright/playwright.config.ts --headed",
+    "test:debug": "npx playwright test --config=playwright/playwright.config.ts --debug",
+    "test:ui": "npx playwright test --ui --config=playwright/playwright.config.ts",
+    "test:report": "npx playwright show-report playwright/reports/html",
+    "test:list": "npx playwright test --config=playwright/playwright.config.ts --list",
+    "check": "prettier --check .",
+    "format": "prettier --write .",
+    "check:ng-sdk-version": "npm view @companyName/ng-sdk version"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.54.1",
+    "@types/cypress": "^0.1.6",
+    "@types/node": "^22.17.0",
+    "cypress": "^14.5.3",
+    "cypress-mochawesome-reporter": "^3.8.2",
+    "dotenv": "^17.2.1",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^5.0.0",
+    "mochawesome-report-generator": "^6.2.0",
+    "playwright": "^1.54.1",
+    "prettier": "^3.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@companyName/ng-sdk": "^0.10.13",
+    "cypress-multi-reporters": "^1.6.4",
+    "mocha-junit-reporter": "^2.2.1",
+    "otplib": "^12.0.1"
+  }
+}

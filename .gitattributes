@@ -1,0 +1,103 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto eol=lf
+
+# Source code
+*.css text diff=css
+*.htm text diff=html
+*.html text diff=html
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.yml text
+*.yaml text
+*.xml text
+*.py text diff=python
+*.java text diff=java
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+*.pdf binary
+*.doc binary
+*.docx binary
+
+# Graphics
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Fonts
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+
+# RC files and configs
+*.conf text
+*.config text
+.env text
+.gitattributes text
+.gitignore text
+.editorconfig text
+
+# Build files
+*.lock text -diff
+package-lock.json text -diff
+yarn.lock text -diff
+
+# TypeScript/JavaScript files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.mjs text
+*.cjs text
+
+# Cypress specific
+cypress.config.*.ts text
+cypress.common.ts text
+cypress/e2e/**/*.ts text
+cypress/e2e/**/*.js text
+cypress/support/**/*.ts text
+cypress/support/**/*.js text
+cypress/fixtures/**/*.json text
+
+# Web files
+*.css text diff=css
+*.htm text diff=html
+*.html text diff=html
+*.json text
+*.yaml text
+*.yml text
+*.xml text
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.fish text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Documentation
+*.md text diff=markdown
+*.mdx text diff=markdown
+*.txt text
+*.rst text
+*.pdf binary
+*.doc binary
+*.docx binary
+
+# Configuration
