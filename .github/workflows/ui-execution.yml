@@ -1,0 +1,240 @@
+name: UI Test Execution
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'cypress/**'
+      - 'playwright/**'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'cypress/**'
+      - 'playwright/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - uat
+          - production
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - cypress
+          - playwright
+          - all
+      browser:
+        description: 'Browser to test on'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - edge
+          - safari
+
+env:
+  NODE_VERSION: '18'
+  CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      cypress-changed: ${{ steps.changes.outputs.cypress }}
+      playwright-changed: ${{ steps.changes.outputs.playwright }}
+      config-changed: ${{ steps.changes.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            cypress:
+              - 'cypress/**'
+            playwright:
+              - 'playwright/**'
+            config:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'cypress.config.*'
+              - 'playwright.config.*'
+
+  cypress-tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.cypress == 'true' || needs.detect-changes.outputs.config == 'true' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        browser: [chrome, firefox, edge]
+        if: github.event_name == 'workflow_dispatch'
+        browser: [chrome]
+        if: github.event_name != 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run install:cypress
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Setup environment
+        run: |
+          cp .env.${{ github.event.inputs.environment || 'staging' }}.template .env.${{ github.event.inputs.environment || 'staging' }}
+          echo "TEST_ENV=${{ github.event.inputs.environment || 'staging' }}" >> .env.${{ github.event.inputs.environment || 'staging' }}
+          echo "TEST_SUITE=${{ github.event.inputs.test_suite || 'smoke' }}" >> .env.${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Run Cypress tests
+        run: |
+          npm run cypress:${{ github.event.inputs.environment || 'staging' }}:${{ github.event.inputs.test_suite || 'smoke' }}
+        env:
+          CYPRESS_BASE_URL: ${{ secrets[format('{0}_BASE_URL', github.event.inputs.environment || 'STAGING')] }}
+          CYPRESS_API_URL: ${{ secrets[format('{0}_API_URL', github.event.inputs.environment || 'STAGING')] }}
+          CYPRESS_USERNAME: ${{ secrets[format('{0}_USERNAME', github.event.inputs.environment || 'STAGING')] }}
+          CYPRESS_PASSWORD: ${{ secrets[format('{0}_PASSWORD', github.event.inputs.environment || 'STAGING')] }}
+          CYPRESS_BROWSER: ${{ github.event.inputs.browser || 'chrome' }}
+
+      - name: Upload Cypress results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: cypress-results-${{ github.run_number }}
+          path: |
+            cypress/results/
+            cypress/screenshots/
+            cypress/videos/
+
+  playwright-tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.playwright == 'true' || needs.detect-changes.outputs.config == 'true' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        if: github.event_name == 'workflow_dispatch'
+        browser: [chromium]
+        if: github.event_name != 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run install:playwright
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Setup environment
+        run: |
+          cp .env.${{ github.event.inputs.environment || 'staging' }}.template .env.${{ github.event.inputs.environment || 'staging' }}
+          echo "TEST_ENV=${{ github.event.inputs.environment || 'staging' }}" >> .env.${{ github.event.inputs.environment || 'staging' }}
+          echo "TEST_SUITE=${{ github.event.inputs.test_suite || 'smoke' }}" >> .env.${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Run Playwright tests
+        run: |
+          npm run playwright:${{ github.event.inputs.environment || 'staging' }}:${{ github.event.inputs.test_suite || 'smoke' }}
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets[format('{0}_BASE_URL', github.event.inputs.environment || 'STAGING')] }}
+          PLAYWRIGHT_API_URL: ${{ secrets[format('{0}_API_URL', github.event.inputs.environment || 'STAGING')] }}
+          PLAYWRIGHT_USERNAME: ${{ secrets[format('{0}_USERNAME', github.event.inputs.environment || 'STAGING')] }}
+          PLAYWRIGHT_PASSWORD: ${{ secrets[format('{0}_PASSWORD', github.event.inputs.environment || 'STAGING')] }}
+          PLAYWRIGHT_BROWSER: ${{ github.event.inputs.browser || 'chromium' }}
+
+      - name: Upload Playwright results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-results-${{ github.run_number }}
+          path: |
+            playwright/test-results/
+            playwright/screenshots/
+            playwright/videos/
+
+  test-report:
+    runs-on: ubuntu-latest
+    needs: [cypress-tests, playwright-tests]
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./artifacts
+
+      - name: Generate test report
+        run: |
+          echo "# Test Execution Report" > test-report.md
+          echo "## Execution Summary" >> test-report.md
+          echo "- **Date**: $(date)" >> test-report.md
+          echo "- **Environment**: ${{ github.event.inputs.environment || 'staging' }}" >> test-report.md
+          echo "- **Test Suite**: ${{ github.event.inputs.test_suite || 'smoke' }}" >> test-report.md
+          echo "- **Trigger**: ${{ github.event_name }}" >> test-report.md
+          echo "" >> test-report.md
+          echo "## Results" >> test-report.md
+          echo "- Cypress Tests: ${{ needs.cypress-tests.result }}" >> test-report.md
+          echo "- Playwright Tests: ${{ needs.playwright-tests.result }}" >> test-report.md
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report-${{ github.run_number }}
+          path: test-report.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('test-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });

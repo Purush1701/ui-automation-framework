@@ -1,0 +1,148 @@
+name: Scheduled UI Test Execution - Staging
+
+on:
+  schedule:
+    # Run every weekday at 2:00 AM UTC (adjust timezone as needed)
+    - cron: '0 2 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - cypress
+          - playwright
+          - smoke
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - uat
+          - production
+
+env:
+  NODE_VERSION: '18'
+  CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-runner: [cypress, playwright]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run install:all
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Setup test environment
+        run: |
+          cp .env.staging.template .env.staging
+          echo "TEST_ENV=staging" >> .env.staging
+          echo "TEST_SUITE=${{ github.event.inputs.test_suite || 'all' }}" >> .env.staging
+
+      - name: Run Cypress tests
+        if: matrix.test-runner == 'cypress'
+        run: |
+          npm run cypress:staging:headless
+        env:
+          CYPRESS_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          CYPRESS_API_URL: ${{ secrets.STAGING_API_URL }}
+          CYPRESS_USERNAME: ${{ secrets.STAGING_USERNAME }}
+          CYPRESS_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
+
+      - name: Run Playwright tests
+        if: matrix.test-runner == 'playwright'
+        run: |
+          npm run playwright:staging:headless
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          PLAYWRIGHT_API_URL: ${{ secrets.STAGING_API_URL }}
+          PLAYWRIGHT_USERNAME: ${{ secrets.STAGING_USERNAME }}
+          PLAYWRIGHT_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-runner }}-${{ github.run_number }}
+          path: |
+            cypress/results/
+            playwright/results/
+            test-reports/
+
+      - name: Upload screenshots and videos
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: test-artifacts-${{ matrix.test-runner }}-${{ github.run_number }}
+          path: |
+            cypress/screenshots/
+            cypress/videos/
+            playwright/test-results/
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: setup-and-test
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.setup-and-test.result == 'success'
+        run: |
+          echo "✅ All UI tests passed successfully!"
+          # Add Slack/Teams notification here if needed
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"✅ UI Tests Passed: All scheduled tests completed successfully"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on failure
+        if: needs.setup-and-test.result == 'failure'
+        run: |
+          echo "❌ UI tests failed! Check the logs and artifacts."
+          # Add Slack/Teams notification here if needed
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"❌ UI Tests Failed: Check GitHub Actions for details"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: |
+          npm audit --audit-level=high
+          
+      - name: Check for vulnerabilities
+        run: |
+          npm audit --audit-level=critical
